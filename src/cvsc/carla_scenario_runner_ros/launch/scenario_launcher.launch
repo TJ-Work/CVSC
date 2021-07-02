@@ -1,0 +1,13 @@
+<!-- -->
+<launch>
+    <arg name="scenario_runner_argument" 
+        default="--scenario ControlAssessment_1"/>
+        
+    <node pkg="carla_scenario_runner_ros" 
+    type="scenario_runner.py" 
+    name="scenario_runner" 
+    args="$(arg scenario_runner_argument)"
+    output="screen">
+        
+    </node>
+</launch>

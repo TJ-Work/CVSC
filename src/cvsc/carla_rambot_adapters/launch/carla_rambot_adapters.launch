@@ -1,0 +1,11 @@
+<launch>
+    <arg name="target_speed" default="5" />
+    <arg name="controller_id" default="2"/>
+    <node pkg="carla_rambot_adapters" type="carla_global_twist2local.py" name="carla_global_twist2local" output="log" respawn="false" respawn_delay="0" />
+    <node pkg="carla_rambot_adapters" type="local_path_adapter.py" name="local_path_adapter">
+        <param name="target_speed" value="$(arg target_speed)"/>
+        <param name="controller_id" value="$(arg controller_id)"/>
+    </node>
+    <node pkg="carla_rambot_adapters" type="Ramcontrol2carla.py" name="Ramcontrol2carla" />
+    <node pkg="carla_rambot_adapters" type="indicator_adapter.py" name="indicator_adapter" />
+</launch>

@@ -1,0 +1,14 @@
+site_name: Carla Rambot Docs
+nav:
+    - 'readme.md'
+    -  'get_started.md'
+    - 'need_read.md'
+    - 'carla_ros_bridge.md'
+    -  'scenario_designer.md'
+    - 'carla_rambot_adapters.md'
+    - 'others.md'
+    -  'to_do_list.md'
+    
+theme: readthedocs
+
+use_directory_urls: False
