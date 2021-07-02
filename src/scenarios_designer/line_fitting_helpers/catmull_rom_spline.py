@@ -23,7 +23,7 @@ def catmull_rom_one_point(x, v0, v1, v2, v3):
     c4 = -.5 * v0 + 1.5 * v1 + -1.5 * v2 + .5 * v3
     return (((c4 * x + c3) * x + c2) * x + c1)
 
-def catmull_rom(p_x, p_y, res):
+def catmull_rom(p_x, p_y, p_z, res):
     """Computes Catmull-Rom Spline for given support points and resolution.
 
     Args:
@@ -35,16 +35,18 @@ def catmull_rom(p_x, p_y, res):
     # create arrays for spline points
     x_intpol = np.empty(res*(len(p_x)-1) + 1)
     y_intpol = np.empty(res*(len(p_x)-1) + 1)
-
+    z_intpol = np.empty(res*(len(p_z)-1) + 1)
     # set the last x- and y-coord, the others will be set in the loop
     x_intpol[-1] = p_x[-1]
     y_intpol[-1] = p_y[-1]
-
+    z_intpol[-1] = p_z[-1]
     # loop over segments (we have n-1 segments for n points)
     for i in range(len(p_x)-1):
         # set x-coords
         x_intpol[i*res:(i+1)*res] = np.linspace(
             p_x[i], p_x[i+1], res, endpoint=False)
+        z_intpol[i*res:(i+1)*res] = np.linspace(
+            p_z[i], p_z[i+1], res, endpoint=False)
         if i == 0:
             # need to estimate an additional support point before the first
             y_intpol[:res] = np.array([
@@ -75,7 +77,7 @@ def catmull_rom(p_x, p_y, res):
                     p_y[i+2]) for x in np.linspace(0.,1.,res, endpoint=False)])
 
 
-    return (x_intpol, y_intpol)
+    return (x_intpol, y_intpol, z_intpol)
 
 
 if __name__ == '__main__':

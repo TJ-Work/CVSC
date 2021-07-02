@@ -1,7 +1,12 @@
 # Scenario designer
-you can choose 2d/3d scenario designer,if don't want to add obstacles, 2d is strongly recommended. 
+Scenario designer for Carla scenario runner
 ## Usage
-cd to the self_driving_scenatio_designer, then run "./run.sh"; note that you gave the run.sh chmod +x 
+1. Install the environment(some dependency) under Python 3.x, run carla environment ./CarlaUE4.sh
 
-more informations in here;
+```
+python 3d_routes_and_obstacle_design.py
+```
+2. Press H/? to get the instruction of scenario designer
+3. Press R to save the xml file. The output_xmls folder should be the location of output xmls.
+
 

@@ -1,84 +1,112 @@
 # CVSC: a Close-loop Vehicle Simulator For Control Based on Carla
 
-<img align=right width=150px  src="static/images/logo.png" />
+<img align=right width=150px  src="images/logo_transparent.png" />
 
-[![build](https://img.shields.io/badge/build-passing-brightgreen?style=plastic)](https://github.com/UM-Lifelong-Learning-Lab/EasyMeeting/actions)
+[![build](https://img.shields.io/badge/build-passing-brightgreen?style=plastic)](https://github.com/TJ-Work/CVSC/actions)
 [![Documentation](https://img.shields.io/badge/docs-passing-blue?style=plastic)](https://docs.google.com/document/d/1gVRUaGxr5uluH6ehMqdeC0KJiINGeDPv/edit#)
-[![GitHub license](https://img.shields.io/badge/lisense-MIT-orange?style=plastic)](https://github.com/UM-Lifelong-Learning-Lab/EasyMeeting/blob/main/LICENSE.txt)
-[![GitHub stars](https://img.shields.io/github/stars/UM-Lifelong-Learning-Lab/EZMeeting?style=plastic)](https://github.com/UM-Lifelong-Learning-Lab/EasyMeeting/stargazers)
+[![GitHub license](https://img.shields.io/badge/lisense-MIT-orange?style=plastic)](https://github.com/TJ-Work/CVSC/blob/main/LICENSE.txt)
+[![GitHub stars](https://img.shields.io/github/stars/TJ-Work/CVSC?style=plastic)](https://github.com/TJ-Work/CVSC/stargazers)
 
-**[ 🏗 [Github Repo](https://github.com/UM-Lifelong-Learning-Lab/EZMeeting) | 📜 [Documentation](https://docs.google.com/document/d/1gVRUaGxr5uluH6ehMqdeC0KJiINGeDPv/edit#) | 🎓 [Paper]() ]**
+**[ 🏗 [Github Repo](https://github.com/TJ-Work/CVSC) | 📜 [Documentation](https://tj-work.github.io/CVSC-Simulator/) ]**
 
-Welcome to EZMeeting! EZMeeting is an online video-based meeting tool, which aims to promote better engagement, careful listening, and  reflective thinking. The product provides the following capabilities:
+Welcome to CVSC! CVSC is a Close-loop Vehicle Simulator For Control Based on Carla. The product provides the following capabilities:
 
-- 🎏 **Realtime transcription with notes**: help users to catch up all key-point during online meetings.
-- 📷 **Automatic summary**: an index panel for reviewing and reflecting.
-- 🚀 **Automatic notification**: promote users to be more focused during the meeting.
+- 🎏 **New blank Map**: allow users to easily define the map and target trajectory.
+- 📷 **Easy used visualization**: allow users to watch the preformance of controllers
+- 🚀 **ADP-SMC controller**: improve the accuracy of smc controller using adp
 
-<img src="static/images/project_overview.png" style="border-radius: 20px;">
+<img src="images/cvsc.png" style="border-radius: 20px;">
 
 ## 🛠 Quick Start
-0. Download this repository(main for local version and heroku version, master for digital ocean version)
-```bash
-git clone https://github.com/UM-Lifelong-Learning-Lab/EZMeeting.git
-cd EZMeeting
-git branch -r | grep -v '\->' | while read remote; do git branch --track "${remote#origin/}" "$remote"; done
-git fetch --all
-git pull --all
-git branch main
-```
-2. Install conda/virtualenv or any environment control software, here we use conda as an example
-```bash
-wget -c https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh
-chmod 777 Miniconda3-latest-Linux-x86_64.sh
-sh Miniconda3-latest-Linux-x86_64.sh
-```
-2. Create a new environment 
-```bash
-conda create -n python=3.7 your_env_name
-```
-3. Activate the environment
-```bash
-conda activate your_env_name
-```
-4. Install the required python packages
 
-```bash
-pip install -r requirments.txt
+0. Dependency
+
+> [安装运行carla](http://carla.org)
+>
+> [安装运行ros](http://wiki.ros.org)
+>
+> [配置carla_ros_bridg](https://github.com/carla-simulator/ros-bridge) 
+>
+> [安装python simple pid 模块](https://github.com/carla-simulator/ros-bridge/tree/master/carla_ackermann_control)
+>
+> [multiplot画图工具](https://github.com/llove-y/rqt_multiplot_plugin)
+
+1. export python environment
+
 ```
-5. Install and Start Redis Server
-```bash
-sudo apt update
-sudo apt install redis-server
-redis-server
+export PYTHONPATH=$PYTHONPATH:<path/to/carla/>/PythonAPI/<your_egg_file>
 ```
-7.Run the programm
-```bash
-python manage.py makemigrations
-python manage.py migrate
-python manage.py createsuperuser(to access the database, you need a superuser account)
-python manage.py runserver
+
+if you cannot find egg_file, try:
+
 ```
+export PYTHONPATH="/home/owen/Music/CARLA_0.9.5/PythonAPI/carla/dist/carla-0.9.5-py2.7-linux-x86_64.egg:$PYTHONPATH"
+export PYTHONPATH="/home/owen/Music/CARLA_0.9.5/PythonAPI/carla:$PYTHONPATH"
+```
+
+or you can add it to ~/.bashrc file
+
+```
+echo 'PYTHONPATH="/home/owen/Music/CARLA_0.9.5/PythonAPI/carla/dist/carla-0.9.5-py2.7-linux-x86_64.egg:$PYTHONPATH"' >> ~/.bashrexport 
+```
+2. run carla backend
+
+``` 
+cd ~/../CARLA_0.9.5  
+./CarlaUE4.sh 或者 DISPLAY=  ./CarlaUE4.sh  
+```
+
+recommend use
+
+```
+DISPLAY= ./CarlaUE4.sh /Game/Carla/Maps/Town01 -benchmark -fps=10
+```
+
+
+3. design scenarios
+```
+python 3d_routes_and_obstacle_design.py
+```
+or:
+```
+python 2d_routes_design.py
+```
+<img src="images/designer.png" style="border-radius: 20px;">
+
+4. Run CVSC
+```
+roslaunch carla_launcher assess_rambot_controller.launch
+```
+5. Run your own controller
+
+```
+roslaunch rambot_controller rambot_controller_simu.launch
+```
+6. Run plot
+
+```
+rqt_multiplot
+```
+<img src="images/effect.png" style="border-radius: 20px;">
+
+
+## 🎶 ADP-Refined SMC controller
+The framework of controller is shown in the following pic,
+<img src="images/controller.png" style="border-radius: 20px;">
+
+The simulation results:
+<img src="images/simulation.png" style="border-radius: 20px;">
+
+For more details, please refer to my [paper](docs/bachelor_thesis.pdf).
+
 ## 🏫 Documentations
 
-More information about EZMeeting can be found in [EZMeeting Documentation](https://docs.google.com/document/d/1gVRUaGxr5uluH6ehMqdeC0KJiINGeDPv/edit#). 
-Besides, the code of our [paper]() can be found in [this repo](https://github.com/UM-Lifelong-Learning-Lab/EasyMeeting).
-
-## 📎 Citation
+More information about CVSC can be found in [CVSC Documentation](https://tj-work.github.io/CVSC-Simulator/). 
+Besides, the code of my [paper](docs/bachelor_thesis.pdf) can be found in [this repo](https://github.com/TJ-Work/CVSC).
 
 
-If you find this work useful in your project, please consider to cite it through:
-
-```
-@article{,
-  title={},
-  author={},
-  journal={},
-  year={}
-}
-```
-[![GitHub contributors](https://img.shields.io/github/contributors/UM-Lifelong-Learning-Lab/EZMeeting?style=plastic)](https://github.com/UM-Lifelong-Learning-Lab/EZMeeting/graphs/contributors)
-[![GitHub forks](https://img.shields.io/github/forks/UM-Lifelong-Learning-Lab/EZMeeting?style=plastic)](https://github.com/UM-Lifelong-Learning-Lab/EZMeeting/network)
-[![GitHub issues](https://img.shields.io/github/issues/UM-Lifelong-Learning-Lab/EZMeeting?style=plastic)](https://github.com/UM-Lifelong-Learning-Lab/EZMeeting/issues)
+[![GitHub contributors](https://img.shields.io/github/contributors/TJ-Work/CVSC?style=plastic)](https://github.com/TJ-Work/CVSC/graphs/contributors)
+[![GitHub forks](https://img.shields.io/github/forks/TJ-Work/CVSC?style=plastic)](https://github.com/TJ-Work/CVSC/network)
+[![GitHub issues](https://img.shields.io/github/issues/TJ-Work/CVSC?style=plastic)](https://github.com/TJ-Work/CVSC/issues)
 
 

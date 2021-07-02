@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<scenarios>
+	<scenario name="ControlAssessment" type="ControlAssessment" town="Town03">
+		<ego_vehicle model="BMW"/>
+/t/t<object x="10.023675918579102" y="-189.9456024169922" z="0.18221142888069156" pitch="-90.0" roll="-2.874176025390625" yaw="0.0" model="static.prop.constructioncone"/>
+/t/t<object x="45.72182083129883" y="-89.9549789428711" z="0.585791826248169" pitch="-0.0002458867966197431" roll="179.99923706054688" yaw="178.44009399414062" model="static.prop.constructioncone"/>
+/t/t<object x="45.02885055541992" y="-4.924012184143066" z="0.1720346212387085" pitch="-90.0" roll="4.611491680145264" yaw="-9.75243854522705" model="static.prop.constructioncone"/>
+/t/t<object x="56.8268928527832" y="88.3455581665039" z="0.006554908584803343" pitch="6.830188794992863e-06" roll="0.00026776047889143234" yaw="12.000093460083008" model="static.prop.box01"/>
+/t/t<object x="-74.1911849975586" y="95.67149353027344" z="0.17203545570373535" pitch="90.0" roll="66.46170806884766" yaw="153.43495178222656" model="static.prop.constructioncone"/>
+		<route>
+		</route>
+	</scenario>
+</scenarios>

@@ -1,39 +1,54 @@
 """
-Welcome to CARLA manual control.
+Welcome to 3D Scenario Editor.
 Use keys and mouse wheel for control.
 
------------------------------------------------------------------------------------
-camera manager:
-    W            : upward
-    S            : downward
+--------------------------------------------------
+    W            : forward
+    S            : backward
     AD           : left and right
-
-    MouseWheelDown: zoom backward
-    MouseWheelUp  : zoom forward
-
-    TAB          : Change camera,by click TAB, you change your camera to two views.
------------------------------------------------------------------------------------
+    MouseWheelDown: upward
+    MouseWheelUp  : downward
+    TAB          : Change camera,by click TAB, you 
+                   change your camera to two views.
+---------------------------------------------------
 object manager:
-    Mouseleftdown  : Change object to place,and preview it.
+    Mouseleftdown  : Change object to place,and 
+                     preview it.
     Mouserightdown : Place the object
-
     BACKSPACE    : Delete the last placed object
------------------------------------------------------------------------------------
+---------------------------------------------------
 routes manager:
-    Mouseleftdown  : 
-    Mouserightdown : 
------------------------------------------------------------------------------------
-    C            : you can press c to change the mode to route or object set.
-    R            : Record the object placed into a xml style file for scenario_runner
-
+    Mouseleftdown  :  add waypoint
+----------------------------------------------------
+    C            : you can press c to change the mode
+                   to route or object set.
+    I            : Under route selection mode, you can
+                   press i to decide whether the route
+                   will be automatically located in the 
+                   waypoints.
+    R            : Record the object placed into a xml 
+                   style file for scenario_runner
     shift + R    : Restart
     H/?          : toggle help
     ESC          : quit
 """
+import glob
+import os
+import sys
+import time
 
+# try:
+#     sys.path.append(glob.glob('carla/dist/carla-*%d.%d-%s.egg' % (
+#         sys.version_info.major,
+#         sys.version_info.minor,
+#         'win-amd64' if os.name == 'nt' else 'linux-x86_64'))[0])
+# except IndexError:
+#     pass
 
 import carla
 from carla import ColorConverter as cc
+from agents.navigation.global_route_planner import GlobalRoutePlanner
+from agents.navigation.global_route_planner_dao import GlobalRoutePlannerDAO
 
 import argparse
 import collections
@@ -47,39 +62,21 @@ import weakref
 import numpy as np
 from line_fitting_helpers import catmull_rom_spline as cftool
 
-
+import tkinter as tk
+from tkinter import filedialog, messagebox
+from csv_to_xml_helper import all_csv_to_xml
 try:
     import pygame
     from pygame.locals import KMOD_CTRL
     from pygame.locals import KMOD_SHIFT
-    from pygame.locals import K_0
-    from pygame.locals import K_9
-    from pygame.locals import K_BACKQUOTE
-    from pygame.locals import K_BACKSPACE
-    from pygame.locals import K_COMMA
-    from pygame.locals import K_DOWN
+    from pygame.locals import K_0, K_9
+    from pygame.locals import K_BACKSPACE, K_TAB
     from pygame.locals import K_ESCAPE
     from pygame.locals import K_F1
-    from pygame.locals import K_LEFT
-    from pygame.locals import K_PERIOD
-    from pygame.locals import K_RIGHT
     from pygame.locals import K_SLASH
-    from pygame.locals import K_SPACE
-    from pygame.locals import K_TAB
-    from pygame.locals import K_UP
-    from pygame.locals import K_a
-    from pygame.locals import K_c
-    from pygame.locals import K_d
-    from pygame.locals import K_h
-    from pygame.locals import K_m
-    from pygame.locals import K_p
-    from pygame.locals import K_q
-    from pygame.locals import K_r
-    from pygame.locals import K_s
-    from pygame.locals import K_w
-    from pygame.locals import K_u, K_i, K_o, K_j, K_k, K_l
-    from pygame.locals import K_MINUS
-    from pygame.locals import K_EQUALS
+    from pygame.locals import K_q , K_r, K_c, K_h, K_t
+    from pygame.locals import K_w, K_a, K_s, K_d
+    from pygame.locals import K_u, K_i, K_o
 except ImportError:
     raise RuntimeError(
         'cannot import pygame, make sure pygame package is installed')
@@ -174,6 +171,8 @@ class KeyboardControl(object):
         self.waypoint_generate = 'autonomous'
         self.waypoint_generates = ['autonomous',
                                    'hand']
+                                   
+        pygame.key.set_repeat(10, 15)
         self.generate_index = 0
         self.world = world
         world.hud.notification("Press 'H' or '?' for help.", seconds=4.0)
@@ -189,6 +188,18 @@ class KeyboardControl(object):
         self.generate_index = (self.generate_index + 1) % len(self.waypoint_generates)
         self.waypoint_generate = self.waypoint_generates[self.generate_index]
         self.world.hud.notification("change waypoint generate way to {}".format(self.waypoint_generate),seconds=4.0)
+
+    def merge_into_xml(self):
+        root = tk.Tk()
+        root.geometry("500x300+750+200")
+        root.withdraw()
+        filetypes = [('xml config', '*.xml')]
+        file_name= filedialog.asksaveasfilename(title='Save Xml',
+                                                filetypes=filetypes,
+                                                initialdir='./output_xmls'           # 打开当前程序工作目录
+                                                )
+        all_csv_to_xml(OBJECT_FILE,ROUTES_FILE,file_name)
+        
 
     def parse_events(self, client, world, clock):
         for event in pygame.event.get():
@@ -210,16 +221,25 @@ class KeyboardControl(object):
                 elif event.key == K_r:
                     world.object_manager.save_object_configure()
                     world.routes_manager.save_routes_configure()
+                    self.merge_into_xml()
                 elif event.key == K_u:
                     world.object_manager.change_object()
                 elif event.key == K_BACKSPACE:
-                    world.object_manager.delete_last_object()
+                    #print("get event K_BACKSPACE!")
+                    if self.mode == 'set_objects':
+                        world.object_manager.delete_last_object()
+                    elif self.mode == 'set_routes':
+                        world.routes_manager.delete_last_waypoint()
                 elif event.key == K_c:
                     self.change_mode()
                 elif event.key == K_o:
                     self.change_waypoint_generate()
                 elif event.key == K_i:
                     world.routes_manager.fit_routes()
+                    #world.routes_manager.fit_routes_with_carla()
+                elif event.key == K_t:
+                    #world.routes_manager.fit_routes()
+                    world.routes_manager.fit_routes_with_carla()
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 pressed_array = pygame.mouse.get_pressed()
                 for index in range(len(pressed_array)):
@@ -463,7 +483,6 @@ class CameraManager(object):
             if item[0].startswith('sensor.camera'):
                 bp.set_attribute('image_size_x', str(hud.dim[0]))
                 bp.set_attribute('image_size_y', str(hud.dim[1]))
-		bp.set_attribute('sensor_tick','0.01')
             elif item[0].startswith('sensor.lidar'):
                 bp.set_attribute('range', '5000')
             item.append(bp)
@@ -475,27 +494,41 @@ class CameraManager(object):
     def parse_camera_control(self, event):
         if event.type == pygame.KEYDOWN:
             event_key = event.key
+            key_pressed = pygame.key.get_pressed()
+            #while(key_pressed[pygame.K_w]):
+            #print(key_pressed[pygame.K_w])
+            key_pressed = pygame.key.get_pressed()
+            # first person Perspective
             if self.transform_index == 0:
+                #while(key_pressed = pygame.key.get_pressed()):
                 if event_key == K_w:
-                    self.on_ground_camera_transform.location.z += self.linear_speed * 0.3
+                    yaw = self.on_ground_camera_transform.rotation.yaw * np.pi / 180
+                    self.on_ground_camera_transform.location.x += self.linear_speed * 0.5 * \
+                        np.cos(yaw) 
+                    self.on_ground_camera_transform.location.y += self.linear_speed * 0.5 * \
+                        np.sin(yaw) 
                 elif event_key == K_s:
-                    self.on_ground_camera_transform.location.z -= self.linear_speed * 0.3
+                    yaw = self.on_ground_camera_transform.rotation.yaw * np.pi / 180
+                    self.on_ground_camera_transform.location.x -= self.linear_speed * 0.5 * \
+                        np.cos(yaw)
+                    self.on_ground_camera_transform.location.y -= self.linear_speed * 0.5 * \
+                        np.sin(yaw)
                 elif event_key == K_a:
-                    self.on_ground_camera_transform.rotation.yaw -= self.angular_speed
+                    self.on_ground_camera_transform.rotation.yaw -= self.angular_speed * 0.5
                 elif event_key == K_d:
-                    self.on_ground_camera_transform.rotation.yaw += self.angular_speed
+                    self.on_ground_camera_transform.rotation.yaw += self.angular_speed * 0.5
                 else:
                     return
-
+            # god perspective
             elif self.transform_index == 1:
                 if event_key == K_w:
-                    self.high_camera_transform.location.x += self.linear_speed * 5
+                    self.high_camera_transform.location.x += self.linear_speed * 0.5
                 elif event_key == K_s:
-                    self.high_camera_transform.location.x -= self.linear_speed * 5
+                    self.high_camera_transform.location.x -= self.linear_speed * 0.5
                 elif event_key == K_a:
-                    self.high_camera_transform.location.y -= self.linear_speed * 5
-                elif event_key == K_d:
-                    self.high_camera_transform.location.y += self.linear_speed * 5
+                    self.high_camera_transform.location.y -= self.linear_speed * 0.5
+                elif event_key == K_d: 
+                    self.high_camera_transform.location.y += self.linear_speed * 0.5
                 else:
                     return
 
@@ -510,21 +543,12 @@ class CameraManager(object):
             is_changed = True
             if self.transform_index == 0:
                 if event.button == 4:
-                    yaw = self.on_ground_camera_transform.rotation.yaw * np.pi / 180
-                    self.on_ground_camera_transform.location.x += self.linear_speed * \
-                        np.cos(yaw)
-                    self.on_ground_camera_transform.location.y += self.linear_speed * \
-                        np.sin(yaw)
+                    self.on_ground_camera_transform.location.z += self.linear_speed * 0.5
                 elif event.button == 5:
-                    yaw = self.on_ground_camera_transform.rotation.yaw * np.pi / 180
-                    self.on_ground_camera_transform.location.x -= self.linear_speed * \
-                        np.cos(yaw)
-                    self.on_ground_camera_transform.location.y -= self.linear_speed * \
-                        np.sin(yaw)
+                    self.on_ground_camera_transform.location.z -= self.linear_speed * 0.5
                 else:
                     return
             if self.transform_index == 1:
-
                 if event.button == 4:
                     self.high_camera_transform.location.z += self.linear_speed * 5
                 elif event.button == 5:
@@ -618,8 +642,6 @@ class ObjectManager(object):
         self.objects = []
         self.preview_objects = []
         self.World = world
-	self.object_names = ['vehicle.tesla.model3',
-			     "vehicle.bmw.isetta"]
         self.object_names = ["static.prop.constructioncone",
                              "static.prop.box01",
                              "static.prop.trafficcone02",
@@ -643,7 +665,6 @@ class ObjectManager(object):
             
         blueprint = random.choice(self.carla_world.get_blueprint_library().filter(self.object_name))
         actor = self.carla_world.try_spawn_actor(blueprint, output_transform,attach_to = self.World.camera_manager.sensor)
-
         if actor is not None:
             self.preview_objects.append(actor)
             self.hud.notification("preview the object you select {}".format(self.object_name))
@@ -676,6 +697,7 @@ class ObjectManager(object):
             ))
             
             object_.destroy()
+    
 
     def delete_preview_last_object(self):
         if len(self.preview_objects) > 0:
@@ -738,6 +760,7 @@ class RoutesManager(object):
         self.hud = world.hud
         self.waypoints_transforms = []
         self.waypoints_interpolate_transforms = []
+        self.waypoints_interpolate_connections = []
         self.preview_tools = []
         self.World = world
         self.waypoint_index = 0
@@ -746,33 +769,67 @@ class RoutesManager(object):
         self.object_name = "static.prop.wateringcan"
         self.config_file = ROUTES_FILE
         self.debugcolor = carla.Color(r=0,b=0,g=0)
-        self.res = 8   
-        
+        self.defaultcolor = carla.Color(r=40, b=40, g=40)
+        self.res = 8
+
+        dao = GlobalRoutePlannerDAO(self.carla_world.get_map(), 1.0)
+        self.grp = GlobalRoutePlanner(dao)
+        self.grp.setup()
+    
+    def fit_routes_with_carla(self):
+        if len(self.waypoints_interpolate_transforms) > 0:
+            self.delete_exist_routes()
+        #print(len(self.waypoints_transforms))
+        for i in range(len(self.waypoints_transforms) - 1):   # Goes until the one before the last
+            waypoint = self.waypoints_transforms[i]
+            waypoint_next = self.waypoints_transforms[i + 1]
+            interpolated_trace = self.grp.trace_route(waypoint.location, waypoint_next.location)
+            for wp_tuple in interpolated_trace:
+                self.debuger.draw_point(wp_tuple[0].transform.location,size = 0.07, color = carla.Color(0,255,0), life_time = 36000.0)
+                self.waypoints_interpolate_transforms.append(wp_tuple[0].transform)
+                self.waypoints_interpolate_connections.append(wp_tuple[1])
     
     def fit_routes(self):
-        if len(self.waypoints_transforms) > 0:
+        if len(self.waypoints_interpolate_transforms) > 0:
+            self.delete_exist_routes()
+        if len(self.waypoints_transforms) > 2:
+            print("=========spawn route points with waypoints: %d =========" % len(self.waypoints_transforms))
             waypoints_transform_x = []
             waypoints_transform_y = []
+            waypoints_transform_z = []
             for i in range(len(self.waypoints_transforms)):
                 waypoints_transform_x.append(self.waypoints_transforms[i].location.x)
                 waypoints_transform_y.append(self.waypoints_transforms[i].location.y)
-            x, y = cftool.catmull_rom(waypoints_transform_x, waypoints_transform_y,self.res)
+                waypoints_transform_z.append(self.waypoints_transforms[i].location.z)
+            x, y, z = cftool.catmull_rom(waypoints_transform_x, waypoints_transform_y, waypoints_transform_z, self.res)
             transform = []
             for j in range(len(x)):
                 transform = carla.Transform()
                 transform.location.x = x[j]
                 transform.location.y = y[j]
-                zwischen_waypoint = self.map.get_waypoint(transform.location,project_to_road = True, lane_type = carla.LaneType.Driving)
+                transform.location.z = z[j]
+                zwischen_waypoint = self.map.get_waypoint(transform.location, project_to_road = True, lane_type = carla.LaneType.Driving)
                 transform.location.z = zwischen_waypoint.transform.location.z
                 transform.rotation = zwischen_waypoint.transform.rotation
                 self.waypoints_interpolate_transforms.append(transform)
-                self.debuger.draw_point(transform.location,size = 0.07, life_time = 36000.0)        
-            for j in range(len(self.waypoints_interpolate_transforms)):
-                print("x:",self.waypoints_interpolate_transforms[j].location.x)
-                print("y:",self.waypoints_interpolate_transforms[j].location.y)
-                print("z:",self.waypoints_interpolate_transforms[j].location.z)
+                self.debuger.draw_point(transform.location,size = 0.07, life_time = 36000.0)
+            print("=========spawn route points success: %d ===============" % len(self.waypoints_interpolate_transforms))       
+            #for j in range(len(self.waypoints_interpolate_transforms)):
+            #    print("x:",self.waypoints_interpolate_transforms[j].location.x)
+            #    print("y:",self.waypoints_interpolate_transforms[j].location.y)
+            #    print("z:",self.waypoints_interpolate_transforms[j].location.z)
+        else:
+            print("=========spawn route points need at least 3 waypoints =========")
+            self.hud.notification("spawn route points need at least 3 waypoints")
 
-
+    def delete_exist_routes(self):
+        if (len(self.waypoints_interpolate_transforms) > 0):
+            print("delete all route points: %d" % len(self.waypoints_interpolate_transforms))
+            for i in range(len(self.waypoints_interpolate_transforms)):
+                self.debuger.draw_point(self.waypoints_interpolate_transforms[i].location, 
+                                        size = 0.07, color = self.defaultcolor, life_time = 0)
+            self.waypoints_interpolate_transforms.clear()
+            self.waypoints_interpolate_connections.clear()
         
         
     def preview_waypoints_tools(self):
@@ -801,7 +858,7 @@ class RoutesManager(object):
         if len(self.preview_tools) > 0:
             object_ = self.preview_tools[len(self.preview_tools)-1]
             output_transform = object_.get_transform()
-            your_now_waypoint = self.map.get_waypoint(output_transform.location,project_to_road = True, lane_type = carla.LaneType.Driving)
+            your_now_waypoint = self.map.get_waypoint(output_transform.location, project_to_road = True, lane_type = carla.LaneType.Driving)
             output_transform.location.z = your_now_waypoint.transform.location.z
             self.debuger.draw_point(output_transform.location,size = 0.15,color=self.debugcolor, life_time = 36000.0)
             if your_now_waypoint is not None:
@@ -837,6 +894,17 @@ class RoutesManager(object):
             
             object_.destroy()  
 
+    def delete_last_waypoint(self):
+        print("delete last waypoint")
+        if len(self.waypoints_transforms) > 0:
+            waypoint_ = self.waypoints_transforms.pop()
+            location = waypoint_.location
+            self.hud.notification("delete one waypoint, remaining {} waypoints".format(str(len(self.waypoints_transforms))))
+            self.hud.notification("the deleted waypoint ,locates in {}, {}".format(
+                str(location.x),str(location.y)
+            ))
+            
+            self.debuger.draw_point(location, size = 0.15, color =self.defaultcolor, life_time = 0)
 
     def save_routes_configure(self):
         with open(self.config_file, "w") as my_file:
@@ -847,7 +915,7 @@ class RoutesManager(object):
                 x = transform.location.x
                 y = transform.location.y
                 z = transform.location.z
-                yaw = transform.rotation.yaw + 180
+                yaw = transform.rotation.yaw
                 text = "{},{},{},{}\n".format(
                     str(x), str(y), str(z),  str(yaw) 
                 )

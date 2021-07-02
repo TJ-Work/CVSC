@@ -6,15 +6,17 @@
 
 import numpy as np
 import pandas as pd
-from rospkg import RosPack
+#from rospkg import RosPack
 import sys
 
 def all_csv_to_xml(csv_filename1,csv_filename2,xml_filename):
     dr = pd.read_csv(csv_filename2)    #route
-    map_ = dr.iloc[len(dr)-1][dr.keys()[0]]
-    #map_ = "Town03"
-    vehicle_ = dr.iloc[len(dr)-1][dr.keys()[1]]
-    mode_ = dr.iloc[len(dr)-1][dr.keys()[2]]
+    # map_ = dr.iloc[len(dr)-1][dr.keys()[0]]
+    # vehicle_ = dr.iloc[len(dr)-1][dr.keys()[1]]
+    # mode_ = dr.iloc[len(dr)-1][dr.keys()[2]]
+    map_ = "Town03"
+    vehicle_ = "BMW"
+    mode_ = "with_obstacle"
     if mode_ == "with_obstacle":
         do = pd.read_csv(csv_filename1)    #obstacle
     
@@ -61,9 +63,10 @@ if __name__ == "__main__":
     input_name_obstacle = sys.argv[1]
     input_name_routes = sys.argv[2]
     output_name = sys.argv[3]
-    rp = RosPack()
-    path = rp.get_path('carla_scenario_runner_ros')
-    path += "/src/carla_scenario_runner_ros/srunner/configs/"
+    # rp = RosPack()
+    # path = rp.get_path('carla_scenario_runner_ros')
+    # path += "/src/carla_scenario_runner_ros/srunner/configs/"
+    path = "./output_xmls/"
     output_name = path + output_name
     all_csv_to_xml(input_name_obstacle,input_name_routes,output_name)
 
