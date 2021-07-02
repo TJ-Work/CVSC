@@ -96,12 +96,11 @@ The framework of controller is shown in the following pic,
 The simulation results:
 <img src="images/simulation.png" style="border-radius: 20px;">
 
-For more details, please refer to my [paper](docs/bachelor_thesis.pdf).
+The code of controller here is not provided, you can implement your own controller in controller folder.
 
 ## 🏫 Documentations
 
 More information about CVSC can be found in [CVSC Documentation](https://tj-work.github.io/CVSC-Simulator/). 
-Besides, the code of my [paper](docs/bachelor_thesis.pdf) can be found in [this repo](https://github.com/TJ-Work/CVSC).
 
 
 [![GitHub contributors](https://img.shields.io/github/contributors/TJ-Work/CVSC?style=plastic)](https://github.com/TJ-Work/CVSC/graphs/contributors)
