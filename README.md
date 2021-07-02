@@ -14,7 +14,7 @@ Welcome to CVSC! CVSC is a Close-loop Vehicle Simulator For Control Based on Car
 - 📷 **Easy used visualization**: allow users to watch the preformance of controllers
 - 🚀 **ADP-SMC controller**: improve the accuracy of smc controller using adp
 
-<img src="images/cvsc.png" width=450px style="border-radius: 20px;">
+<img src="images/cvsc.png" style="border-radius: 20px;">
 
 ## 🛠 Quick Start
 
@@ -91,10 +91,10 @@ rqt_multiplot
 
 ## 🎶 ADP-Refined SMC controller
 The framework of controller is shown in the following pic,
-<img src="images/controller.png" width=450px style="border-radius: 20px;">
+<img src="images/controller.png" style="border-radius: 20px;">
 
 The simulation results:
-<img src="images/simulation.png" width=450px style="border-radius: 20px;">
+<img src="images/simulation.png" style="border-radius: 20px;">
 
 For more details, please refer to my [paper](docs/bachelor_thesis.pdf).
 
