@@ -1,5 +1,6 @@
 <img align=right width=150px  src="images/pinterest_board_photo.jpg" />
-##  CVSC: a Close-loop Vehicle Simulator For Control Based on Carla
+
+# CVSC: a Close-loop Vehicle Simulator For Control Based on Carla
 
 
 [![build](https://img.shields.io/badge/build-passing-brightgreen?style=plastic)](https://github.com/TJ-Work/CVSC/actions)
